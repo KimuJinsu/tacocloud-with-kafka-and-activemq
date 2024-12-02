@@ -150,7 +150,6 @@ Spring Initializr를 통해 **Spring Boot 기반의 프로젝트**를 생성하�
 
 ## 📌 소개
 AWS EC2 인스턴스를 설정하고, Kafka와 Zookeeper를 설치 및 실행하는 과정을 순서대로 자세히 설명합니다.  
-이 문서는 Kafka를 AWS EC2에서 안전하고 효율적으로 운영하기 위해 필요한 모든 과정을 포함하고 있습니다.
 
 ---
 
