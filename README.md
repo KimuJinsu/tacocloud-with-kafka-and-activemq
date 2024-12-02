@@ -153,6 +153,67 @@ AWS EC2 인스턴스를 설정하고, Kafka와 Zookeeper를 설치 및 실행하
 
 ---
 
+# AWS EC2를 사용한 Apache Kafka 서버 네트워크 설정 가이드
+
+## 🛠️ 네트워크 설정 단계
+
+### 1. Security Group 설정
+AWS EC2에서 **Apache Kafka 서버**를 운영하기 위해 **Security Group**을 설정합니다.  
+다음 단계를 따라 설정을 진행하세요:
+
+---
+
+### 2. Security Groups 선택
+1. AWS Management Console에서 **EC2 인스턴스**를 선택합니다.
+2. **Security** 탭으로 이동한 후, **Security Groups**를 선택합니다.
+
+---
+
+### 3. Inbound Rules 수정
+1. **Edit inbound rules** 버튼을 클릭합니다.
+
+---
+
+### 4. Inbound Rule 추가
+1. **Add rule** 버튼을 선택합니다.
+2. Kafka 서버가 사용할 **TCP 포트 9092**를 설정합니다.
+   - **Protocol**: TCP
+   - **Port Range**: 9092
+   - **Source**: `0.0.0.0/0` (IPv4) 및 `::/0` (IPv6)
+
+---
+
+### 5. ICMP 설정
+1. **ICMP 설정**을 추가하여 네트워크 상태 확인을 위한 Ping을 허용합니다.
+   - **Protocol**: ICMP
+   - **Type**: Echo Request
+   - **Source**: `0.0.0.0/0` (IPv4) 및 `::/0` (IPv6)
+
+---
+
+### 6. 설정 저장
+1. 모든 설정을 완료한 후, **Save rules** 버튼을 클릭하여 저장합니다.
+
+---
+
+### 7. 설정 확인
+1. 설정한 **Inbound Rules**가 제대로 적용되었는지 확인합니다.
+2. 추가적인 설정이나 변경이 필요한 경우, 다시 **Edit inbound rules** 버튼을 클릭하여 수정합니다.
+
+---
+
+### 8. Public IP 복사
+1. **AWS EC2 인스턴스**의 Public IP Address를 복사합니다.
+
+---
+
+### 9. 네트워크 상태 확인
+1. **ping** 명령어를 사용하여 EC2 인스턴스의 네트워크 상태를 확인합니다.
+   ```bash
+   ping <EC2 Public IP Address>
+
+---
+
 ## 🛠️ EC2 인스턴스 설정
 
 ### 1️⃣ 인바운드 규칙 설정
