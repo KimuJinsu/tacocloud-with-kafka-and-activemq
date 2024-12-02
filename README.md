@@ -143,3 +143,164 @@ Spring Initializr를 통해 **Spring Boot 기반의 프로젝트**를 생성하�
 
 5. **웹 애플리케이션 접속**
    - 사용자 UI: [http://localhost:9091](http://localhost:9091)
+
+---
+
+# ☁️ AWS EC2와 Kafka 설정 가이드
+
+## 📌 소개
+AWS EC2 인스턴스를 설정하고, Kafka와 Zookeeper를 설치 및 실행하는 과정을 자세히 설명합니다. 또한, Kafka 토픽 생성 및 관리 방법, 메시지 확인 및 삭제 방법 등을 다룹니다.
+
+---
+
+## 🛠️ EC2 인스턴스 설정
+
+### 1️⃣ 인바운드 규칙 설정
+1. **AWS 콘솔 접속**: EC2 대시보드에서 사용 중인 인스턴스를 선택.
+2. **보안 그룹 설정**: 인바운드 규칙에서 다음 포트를 추가:
+   - **SSH**: 22번 포트 (IP: 내 IP)
+   - **Kafka**: 9092번 포트 (IP: 필요 시 공인 IP)
+   - **Zookeeper**: 2181번 포트
+
+---
+
+### 2️⃣ EC2 SSH 접속
+1. **Key Pair 권한 설정**:
+   ```bash
+   chmod 400 ./mykafkakey.pem
+   ```
+2. **SSH 접속**:
+   ```bash
+   ssh -i ./mykafkakey.pem ubuntu@<Public-IP>
+   ```
+
+---
+
+## 🌟 Java 설치 및 환경 변수 설정
+
+### 1️⃣ Java 설치
+1. **패키지 업데이트**:
+   ```bash
+   sudo apt update && sudo apt upgrade
+   ```
+2. **Java 설치 가능한 버전 확인**:
+   ```bash
+   apt search openjdk
+   ```
+3. **OpenJDK 설치**:
+   ```bash
+   sudo apt install -y openjdk-11-jdk
+   ```
+
+### 2️⃣ Java 버전 확인
+```bash
+java -version
+```
+
+### 3️⃣ 환경 변수 설정
+1. **`.bashrc` 파일 수정**:
+   ```bash
+   vi ~/.bashrc
+   ```
+2. **다음 내용 추가**:
+   ```bash
+   export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+   export PATH=$PATH:$JAVA_HOME/bin
+   ```
+3. **변경사항 적용**:
+   ```bash
+   source ~/.bashrc
+   ```
+
+---
+
+## 📥 Kafka 설치 및 실행
+
+### 1️⃣ Kafka 다운로드
+```bash
+wget https://downloads.apache.org/kafka/3.7.1/kafka_2.12-3.7.1.tgz
+```
+
+### 2️⃣ Kafka 압축 해제
+```bash
+tar xvf kafka_2.12-3.7.1.tgz
+cd kafka_2.12-3.7.1
+```
+
+### 3️⃣ Zookeeper 실행
+```bash
+./bin/zookeeper-server-start.sh -daemon config/zookeeper.properties
+jps -m
+```
+
+### 4️⃣ Kafka 실행
+```bash
+./bin/kafka-server-start.sh -daemon config/server.properties
+jps -m
+```
+
+---
+
+## 🗂️ Kafka 토픽 관리
+
+### 1️⃣ 토픽 생성
+```bash
+./bin/kafka-topics.sh --create --bootstrap-server <Public-IP>:9092 --topic <Topic-Name>
+```
+
+### 2️⃣ 토픽 목록 확인
+```bash
+./bin/kafka-topics.sh --bootstrap-server <Public-IP>:9092 --list
+```
+
+### 3️⃣ 토픽 정보 확인
+```bash
+./bin/kafka-topics.sh --bootstrap-server <Public-IP>:9092 --topic <Topic-Name> --describe
+```
+
+### 4️⃣ 메시지 확인
+```bash
+./bin/kafka-console-consumer.sh --bootstrap-server <Public-IP>:9092 --topic <Topic-Name> --from-beginning
+```
+
+---
+
+## 🧹 Kafka 종료 및 설정 변경
+
+### 1️⃣ Kafka 종료
+```bash
+./bin/kafka-server-stop.sh
+```
+
+### 2️⃣ Zookeeper 종료
+```bash
+./bin/zookeeper-server-stop.sh
+```
+
+### 3️⃣ 힙 메모리 설정 변경 (필요 시)
+1. **`.bashrc` 파일 수정**:
+   ```bash
+   vi ~/.bashrc
+   ```
+2. **Kafka 힙 메모리 설정 추가**:
+   ```bash
+   export KAFKA_HEAP_OPTS="-Xms300m -Xmx300m"
+   ```
+3. **변경사항 적용**:
+   ```bash
+   source ~/.bashrc
+   ```
+
+---
+
+## ⚠️ 주의사항
+- EC2 프리티어를 사용할 경우 메모리 설정을 최소화해야 합니다.
+- 보안 그룹 설정 시, 필요하지 않은 포트는 닫아 보안을 강화하세요.
+
+---
+
+## 📝 참고 자료
+- [Kafka 공식 문서](https://kafka.apache.org/documentation/)
+- [AWS EC2 공식 가이드](https://aws.amazon.com/ec2/)
+
+
