@@ -149,106 +149,79 @@ Spring Initializr를 통해 **Spring Boot 기반의 프로젝트**를 생성하�
 # ☁️ AWS EC2와 Kafka 설정 가이드
 
 ## 📌 소개
-AWS EC2 인스턴스를 설정하고, Kafka와 Zookeeper를 설치 및 실행하는 과정을 자세히 설명합니다. 또한, Kafka 토픽 생성 및 관리 방법, 메시지 확인 및 삭제 방법 등을 다룹니다.
+AWS EC2 인스턴스를 설정하고, Kafka와 Zookeeper를 설치 및 실행하는 과정을 순서대로 자세히 설명합니다.  
+이 문서는 Kafka를 AWS EC2에서 안전하고 효율적으로 운영하기 위해 필요한 모든 과정을 포함하고 있습니다.
 
 ---
 
-# AWS EC2를 사용한 Apache Kafka 서버 네트워크 설정 가이드
+## 🛠️ 네트워크 설정
 
-## 🛠️ 네트워크 설정 단계
-
-### 1. Security Group 설정
-AWS EC2에서 **Apache Kafka 서버**를 운영하기 위해 **Security Group**을 설정합니다.  
-다음 단계를 따라 설정을 진행하세요:
-
----
-
-### 2. Security Groups 선택
-1. AWS Management Console에서 **EC2 인스턴스**를 선택합니다.
-2. **Security** 탭으로 이동한 후, **Security Groups**를 선택합니다.
+### 1️⃣ Security Group 설정
+AWS EC2에서 **Kafka 서버**를 운영하기 위해 **Security Group** 설정이 필요합니다.  
+1. AWS Management Console에 로그인합니다.
+2. **EC2 인스턴스**를 선택한 뒤, **Security** 탭으로 이동합니다.
+3. **Security Groups**를 선택하여 인바운드 규칙을 편집합니다.
 
 ---
 
-### 3. Inbound Rules 수정
+### 2️⃣ Inbound Rule 추가
+Kafka와 Zookeeper가 사용할 포트 번호를 다음과 같이 설정합니다:
 1. **Edit inbound rules** 버튼을 클릭합니다.
+2. **Add rule** 버튼을 선택합니다.
+3. 필요한 규칙을 아래와 같이 추가:
+   - **SSH (포트 22)**:
+     - **Protocol**: TCP  
+     - **Port Range**: 22  
+     - **Source**: My IP  
+   - **Kafka (포트 9092)**:
+     - **Protocol**: TCP  
+     - **Port Range**: 9092  
+     - **Source**: 0.0.0.0/0 (IPv4), ::/0 (IPv6)  
+   - **Zookeeper (포트 2181)**:
+     - **Protocol**: TCP  
+     - **Port Range**: 2181  
+     - **Source**: 0.0.0.0/0 (IPv4), ::/0 (IPv6)  
+   - **ICMP (Ping 테스트용)**:
+     - **Protocol**: ICMP  
+     - **Type**: Echo Request  
+     - **Source**: 0.0.0.0/0 (IPv4), ::/0 (IPv6)
 
 ---
 
-### 4. Inbound Rule 추가
-1. **Add rule** 버튼을 선택합니다.
-2. Kafka 서버가 사용할 **TCP 포트 9092**를 설정합니다.
-   - **Protocol**: TCP
-   - **Port Range**: 9092
-   - **Source**: `0.0.0.0/0` (IPv4) 및 `::/0` (IPv6)
+### 3️⃣ 규칙 저장 및 확인
+1. 설정한 규칙을 확인 후 **Save rules**를 클릭합니다.
+2. 설정한 규칙이 적용되었는지 확인합니다.
+3. 추가적인 설정이 필요한 경우, 다시 **Edit inbound rules**를 클릭하여 수정합니다.
 
 ---
 
-### 5. ICMP 설정
-1. **ICMP 설정**을 추가하여 네트워크 상태 확인을 위한 Ping을 허용합니다.
-   - **Protocol**: ICMP
-   - **Type**: Echo Request
-   - **Source**: `0.0.0.0/0` (IPv4) 및 `::/0` (IPv6)
+## 🌟 EC2 SSH 접속 및 기본 설정
 
----
-
-### 6. 설정 저장
-1. 모든 설정을 완료한 후, **Save rules** 버튼을 클릭하여 저장합니다.
-
----
-
-### 7. 설정 확인
-1. 설정한 **Inbound Rules**가 제대로 적용되었는지 확인합니다.
-2. 추가적인 설정이나 변경이 필요한 경우, 다시 **Edit inbound rules** 버튼을 클릭하여 수정합니다.
-
----
-
-### 8. Public IP 복사
-1. **AWS EC2 인스턴스**의 Public IP Address를 복사합니다.
-
----
-
-### 9. 네트워크 상태 확인
-1. **ping** 명령어를 사용하여 EC2 인스턴스의 네트워크 상태를 확인합니다.
-   ```bash
-   ping <EC2 Public IP Address>
-
----
-
-## 🛠️ EC2 인스턴스 설정
-
-### 1️⃣ 인바운드 규칙 설정
-1. **AWS 콘솔 접속**: EC2 대시보드에서 사용 중인 인스턴스를 선택.
-2. **보안 그룹 설정**: 인바운드 규칙에서 다음 포트를 추가:
-   - **SSH**: 22번 포트 (IP: 내 IP)
-   - **Kafka**: 9092번 포트 (IP: 필요 시 공인 IP)
-   - **Zookeeper**: 2181번 포트
-
----
-
-### 2️⃣ EC2 SSH 접속
+### 1️⃣ SSH 접속
 1. **Key Pair 권한 설정**:
    ```bash
    chmod 400 ./mykafkakey.pem
    ```
 2. **SSH 접속**:
    ```bash
-   ssh -i ./mykafkakey.pem ubuntu@<Public-IP>
+   ssh -i ./mykafkakey.pem ubuntu@<EC2 Public IP>
    ```
+
+### 2️⃣ 패키지 업데이트
+```bash
+sudo apt update && sudo apt upgrade -y
+```
 
 ---
 
 ## 🌟 Java 설치 및 환경 변수 설정
 
 ### 1️⃣ Java 설치
-1. **패키지 업데이트**:
-   ```bash
-   sudo apt update && sudo apt upgrade
-   ```
-2. **Java 설치 가능한 버전 확인**:
+1. **Java 설치 가능한 버전 확인**:
    ```bash
    apt search openjdk
    ```
-3. **OpenJDK 설치**:
+2. **OpenJDK 설치**:
    ```bash
    sudo apt install -y openjdk-11-jdk
    ```
@@ -363,5 +336,3 @@ jps -m
 ## 📝 참고 자료
 - [Kafka 공식 문서](https://kafka.apache.org/documentation/)
 - [AWS EC2 공식 가이드](https://aws.amazon.com/ec2/)
-
-
