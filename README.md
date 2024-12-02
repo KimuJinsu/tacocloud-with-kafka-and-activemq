@@ -1,5 +1,5 @@
 
-# 🌮 **Taco Cloud Project: 실습 내용**
+# 🌮 **Taco Cloud Project: 실습 내용**.
 
 ## 📌 프로젝트 소개
 Taco Cloud는 **Spring Framework**를 활용한 웹 애플리케이션 프로젝트로, **Spring in Action** 도서를 기반으로 학습하며 구현하였습니다.  
